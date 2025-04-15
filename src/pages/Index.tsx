@@ -8,7 +8,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/player-games")
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/player-games`)
       .then((res) => res.json())
       .then((data) => {
         console.log(data)
