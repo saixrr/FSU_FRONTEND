@@ -105,7 +105,7 @@ const PlayerCard = ({ player, onClick }: PlayerCardProps) => {
             {player.season}
           </span>
         </div>
-        <p className="text-xs text-gray-600 mt-1">vs {player.opponent} ({player.date})</p>
+        <p className="text-xs text-gray-600 mt-1">vs {player.opponent} ({new Date(player.date).toLocaleDateString('en-GB',{day:"2-digit",month:"short",year:"numeric"})})</p>
       </CardHeader>
       <CardContent className="p-4 pt-2">{displayStats()}</CardContent>
     </Card>

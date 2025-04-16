@@ -108,9 +108,14 @@ const PlayerModal = ({ player, isOpen, onClose }: PlayerModalProps) => {
               </div>
 
               <div className="flex justify-between">
-                <span>Date</span>
-                <span>{player.date}</span>
-              </div>
+  <span>Date</span>
+  <span>{new Date(player.date).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })}</span>
+</div>
+
 
               {player.result && (
                 <div className="flex justify-between">
