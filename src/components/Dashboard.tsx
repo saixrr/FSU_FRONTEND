@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import axios from "axios";
 
 // all allowed positions
 const positions = ['QB', 'RB', 'WR', 'TE', 'OL', 'DL', 'LB', 'CB', 'S', 'K', 'P'];
@@ -39,6 +40,24 @@ const Dashboard: React.FC<DashboardProps> = ({ players }) => {
     opponent: "ALL",
     gameType: "ALL"
   });
+  const fetchFilteredPlayers = async (customFilters = {}) => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/player-games/filter`, {
+        params: {
+          name: filters.name || undefined,
+          position: filters.position !== "ALL" ? filters.position : undefined,
+          year: filters.year !== "ALL" ? filters.year : undefined,
+          opponent: filters.opponent !== "ALL" ? filters.opponent : undefined,
+          gameType: filters.gameType !== "ALL" ? filters.gameType : undefined,
+          statCategory: filters.statCategory !== "ALL" ? filters.statCategory : undefined,
+          ...customFilters
+        }
+      });
+      setFilteredPlayers(response.data);
+    } catch (error) {
+      console.error("Error fetching filtered players:", error);
+    }
+  };
   
   const years = ["FR", "SO", "JR", "SR", "GR"];
   const statCategories = [
@@ -75,77 +94,15 @@ const Dashboard: React.FC<DashboardProps> = ({ players }) => {
   // Handle search functionality
   const handleSearch = (searchQuery: string) => {
     if (!searchQuery.trim()) {
-      setFilteredPlayers(players);
-      applyFilters();
-      return;
+      fetchFilteredPlayers(); // Fetch with all filters
+    } else {
+      fetchFilteredPlayers({ name: searchQuery }); // Override with search name
     }
-
-    const query = searchQuery.toLowerCase();
-    const filtered = players.filter(player => 
-      player.playerName.toLowerCase().includes(query) || 
-      player.position.toLowerCase().includes(query) || 
-      player.location.toLowerCase().includes(query)
-    );
-    setFilteredPlayers(filtered);
   };
-
+  
   const applyFilters = () => {
-    let filtered = [...players];
-  
-    // Filter by name
-    if (filters.name) {
-      filtered = filtered.filter(player =>
-        player.playerName.toLowerCase().includes(filters.name.toLowerCase())
-      );
-    }
-  
-    // Filter by position
-    if (filters.position !== "ALL") {
-      filtered = filtered.filter(player => player.position === filters.position);
-    }
-  
-    // Filter by year
-    if (filters.year !== "ALL") {
-      filtered = filtered.filter(player => player.season === filters.year);
-    }
-  
-    // Filter by opponent
-    if (filters.opponent !== "ALL") {
-      filtered = filtered.filter(player => player.opponent === filters.opponent);
-    }
-  
-    // Filter by game type
-    if (filters.gameType !== "ALL") {
-      filtered = filtered.filter(player => player.gameType === filters.gameType);
-    }
-  
-    // Filter by stat category
-    if (filters.statCategory !== "ALL") {
-      filtered = filtered.filter(player => {
-        switch (filters.statCategory) {
-          case "Passing":
-            return player.passingYards !== undefined && player.passingYards > 0;
-          case "Rushing":
-            return player.rushingYards !== undefined && player.rushingYards > 0;
-          case "Receiving":
-            return player.receivingYards !== undefined && player.receivingYards > 0;
-          case "Defense":
-            return (player.tackles && player.tackles > 0) ||
-                   (player.sacks && player.sacks > 0) ||
-                   (player.interceptions && player.interceptions > 0);
-          case "Kicking":
-            return (player.fieldGoalsMade && player.fieldGoalsMade > 0) ||
-                   (player.extraPointsMade && player.extraPointsMade > 0);
-          default:
-            return true;
-        }
-      });
-    }
-  
-    setFilteredPlayers(filtered);
-    setPositionFilter(filters.position);
+    fetchFilteredPlayers(); // Uses the current `filters` state
   };
-  
   
 
   // Handle position filter change
@@ -210,6 +167,9 @@ const Dashboard: React.FC<DashboardProps> = ({ players }) => {
   useEffect(() => {
     setFilteredPlayers(players);
   }, [players]);
+  useEffect(() => {
+    fetchFilteredPlayers();
+  }, []);
   
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
